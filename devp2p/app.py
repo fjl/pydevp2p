@@ -1,8 +1,13 @@
 from UserDict import IterableUserDict
-from service import BaseService
+from service import BaseService, WiredService
+from protocol import BaseProtocol
 from slogging import get_logger
+from rlp import sedes
+import rlp
 import utils
 import crypto
+import gevent
+import random
 from devp2p import __version__
 log = get_logger('app')
 
@@ -40,6 +45,38 @@ class BaseApp(object):
         for service in self.services.values():
             service.stop()
 
+
+class EchoProtocol(BaseProtocol):
+    protocol_id = 1
+    max_cmd_id = 1
+    name = 'echo'
+    version = 1
+
+    def __init__(self, peer, service):
+        self.config = peer.config
+        super(EchoProtocol, self).__init__(peer, service)
+
+    class echo(BaseProtocol.command):
+        cmd_id = 0
+        structure = [('data', sedes.binary)]
+        def receive(self, proto, data):
+            log.debug("received echo %s", data)
+
+    class echoreply(BaseProtocol.command):
+        cmd_id = 1
+        structure = [('data', sedes.binary)]
+        def receive(self, proto, data):
+            log.debug("received echoreply %s", len(data['data']))
+
+    def _run(self):
+        while True:
+            data = '\x00' * random.randint(100, 100*1024)
+            log.info("sending echo with size %d", len(data))
+            self.send_echo(data)
+            gevent.sleep(0.1)
+
+class EchoService(WiredService):
+    wire_protocol = EchoProtocol
 
 def main():
     # config
@@ -91,6 +128,8 @@ node:
     # register services
     NodeDiscovery.register_with_app(app)
     PeerManager.register_with_app(app)
+    EchoService.register_with_app(app)
+
     #  JSONRPCServer.register_with_app(app)
 
     # start app
