@@ -43,17 +43,32 @@ def test_hmac():
 
 
 def test_kdf():
-    input1 = fromHex("0x0de72f1223915fa8b8bf45dffef67aef8d89792d116eb61c9a1eb02c422a4663")
+    key1 = fromHex("0x0de72f1223915fa8b8bf45dffef67aef8d89792d116eb61c9a1eb02c422a4663")
     expect1 = fromHex("0x1d0c446f9899a3426f2b89a8cb75c14b")
-    test1 = crypto.eciesKDF(input1, 16)
+    test1 = crypto.eciesKDF(key1, 16)
     assert len(test1) == len(expect1)
     assert(test1 == expect1)
 
-    kdfInput2 = fromHex("0x961c065873443014e0371f1ed656c586c6730bf927415757f389d92acf8268df")
-    kdfExpect2 = fromHex("0x4050c52e6d9c08755e5a818ac66fabe478b825b1836fd5efc4d44e40d04dabcc")
-    kdfTest2 = crypto.eciesKDF(kdfInput2, 32)
-    assert(len(kdfTest2) == len(kdfExpect2))
-    assert(kdfTest2 == kdfExpect2)
+    key2 = fromHex("0x961c065873443014e0371f1ed656c586c6730bf927415757f389d92acf8268df")
+    expect2 = fromHex("0x4050c52e6d9c08755e5a818ac66fabe478b825b1836fd5efc4d44e40d04dabcc")
+    test2 = crypto.eciesKDF(key2, 32)
+    assert(len(test2) == len(expect2))
+    assert(test2 == expect2)
+
+
+def test_kdf_large():
+    key = fromHex("0x38f9a331c022f51d66658f301837108c9710d5ee0697bfac97bb6b0ea8d4f273")
+    expect1 = fromHex(
+        "0xbbfb3912ffc0d1789be7c3c2773fb6abd8df69578df2ca16beee3d0f7a9692d1eae543288220e41452942fe268297fff38423b65b19cf7c6263aa611a41907410a49acd5adbfbe93e902349105d7bd7ef5b106d9357b20bb4a7977d548bc2bf1a0b275a9f1de19ff8f963ec58171aa31da964edb0131436d88a7714e2429d85693409f718c8fea7ecaa076dce68f282aba4010a42feedcb1affc350497fa1078ad89e23e8a04ba2ef179c3c625b054817d792076b5882e80925d45a2874285d45a7767fa6a3853bd8417930923a554743f6eb4691e4790a97c467337a307c64a8bed5b5c1829d0a690a554d3e5334ee4980a")
+    test1 = crypto.eciesKDF(key, 242)
+    assert(len(test1) == len(expect1))
+    assert(test1 == expect1)
+
+    expect2 = fromHex(
+        "0x71e6fe05a6a57e2312a996eb3b91fc613fb57196ea09880b7b0ed880afa399f942ad56c1a484f4ccd329f9c21911ae09b497e991d8f47060114c8f137ab65df10c3f1d2478a7af913aa406817f34ef55d7852f3390f8201056451b0c29fb73a5c9e5a5093e6d93fefa15846b81bc02e1a7033948d67fc70c1dbbbf11d97f34b15d9967709c666eff05d895cc2f415064b382a98e68c178f9e7e2d9b6169ef4cdd5bb855b21d0ff71339e7e5b3afcb2393a8c6f4c7a4e618094222be87cbfdd2417ebdced5870bfbe8761d2e646c5a62dd31852dba399507adb84334a81b4ce54714f1828a0cdf3067908815d516368c2dd58")
+    test2 = crypto.eciesKDF(key, 242, shared_data=fromHex("0x343434"))
+    assert(len(test2) == len(expect2))
+    assert(test2 == expect2)
 
 
 def test_agree():

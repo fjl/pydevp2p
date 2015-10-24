@@ -288,25 +288,20 @@ def encrypt(data, raw_pubkey):
     return ECCx.encrypt(data, raw_pubkey)
 
 
-def eciesKDF(key_material, key_len):
+def eciesKDF(key_material, key_len, shared_data="", hashfunc=sha256):
     """
     interop w/go ecies implementation
-
-    for sha3, blocksize is 136 bytes
-    for sha256, blocksize is 64 bytes
-
     NIST SP 800-56a Concatenation Key Derivation Function (see section 5.8.1).
     """
-    s1 = ""
+    hash = hashfunc()
+    reps = key_len / hash.digest_size
     key = ""
-    hash_blocksize = 64
-    reps = ((key_len + 7) * 8) / (hash_blocksize * 8)
     counter = 0
     while counter <= reps:
         counter += 1
-        ctx = sha256()
+        ctx = hash.copy()
         ctx.update(struct.pack('>I', counter))
         ctx.update(key_material)
-        ctx.update(s1)
+        ctx.update(shared_data)
         key += ctx.digest()
     return key[:key_len]
